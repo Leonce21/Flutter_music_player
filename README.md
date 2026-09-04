@@ -46,7 +46,7 @@ Sonora is a beautiful, offline-first local music player built with Flutter. Desi
 ## 📂 Project Structure
 
 The project follows a Feature-First architecture, keeping code organized, scalable, and easy to maintain.
-
+```
 lib/
 ├── core/                   # Shared resources, utilities, and global configurations
 │   ├── router/             # GoRouter configuration and custom page transitions
