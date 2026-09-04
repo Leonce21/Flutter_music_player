@@ -6,6 +6,14 @@ Sonora is a beautiful, offline-first local music player built with Flutter. Desi
 
 ## 📱 Screenshots
 
+<img width="720" height="1600" alt="photo_5825617469509407320_w" src="https://github.com/user-attachments/assets/10e8150d-029c-4f48-93c8-39986045c3d6" />
+<img width="720" height="1600" alt="photo_5825617469509407319_w" src="https://github.com/user-attachments/assets/ebcd22c8-2034-4b3e-ac40-4094b87d85f4" />
+<img width="720" height="1600" alt="photo_5825617469509407318_w" src="https://github.com/user-attachments/assets/137f5990-e95b-4091-9f2b-f3fc959c65a0" />
+<img width="720" height="1600" alt="photo_5825617469509407317_w" src="https://github.com/user-attachments/assets/43f44ec6-dad4-4899-9ac2-fcd5bcc95bf4" />
+<img width="720" height="1600" alt="photo_5825617469509407321_w" src="https://github.com/user-attachments/assets/ab94243d-8118-4ae8-937b-d30d16db2893" />
+<img width="720" height="1600" alt="photo_5825617469509407323_w" src="https://github.com/user-attachments/assets/42e74bc2-57ad-4f20-a08e-19a3c3926b00" />
+<img width="720" height="1600" alt="photo_5825617469509407325_w" src="https://github.com/user-attachments/assets/06336b13-37f7-4c4b-8547-e05857a72814" />
+<img width="720" height="1600" alt="photo_5825617469509407324_w" src="https://github.com/user-attachments/assets/706217d0-2d47-4c08-a099-655f9800155a" />
 
 
 
