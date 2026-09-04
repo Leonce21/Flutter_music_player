@@ -17,8 +17,46 @@ dependencies:
   just_audio_background: ^0.0.1-beta.17
   just_audio: ^0.10.6
   device_info_plus: ^10.1.0
+  smooth_page_indicator: ^1.1.0
+  flutter_svg: ^2.0.9
+
 dev_dependencies:
   flutter_test: { sdk: flutter }
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.0
+
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icon/
+    - assets/illustrations/
+
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/sonora_icon.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+
+  web:
+    generate: true
+    image_path: "assets/icon/sonora_icon.png"
+    background_color: "#17171E" # Matches your AppColors.background
+    theme_color: "#FC7E12"      # Matches your AppColors.primary
+
+  windows:
+    generate: true
+    image_path: "assets/icon/sonora_icon.png"
+    icon_size: 48 # min:48, max:256, default: 48
+
+  macos:
+    generate: true
+    image_path: "assets/icon/sonora_icon.png"
+
+flutter_native_splash:
+  color: "#17171E" # Background color (AppColors.background)
+  image: "assets/icon/sonora_icon.png"
+  android: true
+  ios: true
+  web: false

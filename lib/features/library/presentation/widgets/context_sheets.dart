@@ -30,8 +30,8 @@ void showSongContextSheet(BuildContext context, SongModel song) {
     actions: [
       // 1. PLAY NEXT
       ContextAction(
-        icon: AppIcons.playNext,
-        label: 'Play Next',
+        icon: AppIcons.play,
+        label: 'Play',
         onTap: () => pc.playNextInQueue(song),
       ),
 

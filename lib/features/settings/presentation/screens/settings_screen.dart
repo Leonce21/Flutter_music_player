@@ -83,11 +83,11 @@ class SettingsScreen extends ConsumerWidget {
           _SettingsTile(
             icon: AppIcons.share,
             iconColor: AppColors.primary,
-            title: 'Share Mume',
+            title: 'Share Sonora',
             subtitle: 'Tell your friends about us',
             onTap: () {
               Share.share(
-                'Check out Mume, a beautiful offline music player! Enjoy your music with zero distractions.',
+                'Check out Sonora, a beautiful offline music player! Enjoy your music with zero distractions.',
               );
             },
           ),
@@ -97,7 +97,7 @@ class SettingsScreen extends ConsumerWidget {
           _SettingsTile(
             icon: AppIcons.info,
             iconColor: AppColors.primary,
-            title: 'About Mume',
+            title: 'About Sonora',
             subtitle: 'Version 1.0.0',
             onTap: () => _showAboutDialog(context),
           ),
@@ -127,7 +127,7 @@ class SettingsScreen extends ConsumerWidget {
           children: [
             const MumeLogo(size: 32, showWordmark: false),
             const SizedBox(width: 12),
-            Text('Mume', style: AppTextStyles.title),
+            Text('Sonora', style: AppTextStyles.title),
           ],
         ),
         content: Column(

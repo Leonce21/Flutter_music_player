@@ -9,10 +9,10 @@ class AppIcons {
   static const back = Iconsax.arrow_left_2_copy;
   static const moreCircle = Iconsax.more_circle;   // detail app-bar
   static const more = Iconsax.more_circle_copy;                // row overflow (⋮)
-  static const home = Iconsax.home;
+  static const home = Iconsax.home_1;
   static const heart = Iconsax.heart;
   static const playlists = Iconsax.music_playlist;
-  static const settings = Iconsax.setting_4;
+  static const settings = Iconsax.setting_2;
   static const folder = Iconsax.folder_minus;      // folder-with-dash glyph
   static const shuffle = Iconsax.shuffle;
   static const repeat = Iconsax.repeate_music;

@@ -10,10 +10,8 @@ import 'core/theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Force the system gesture/nav bar to use the app's dock color.
-  // systemNavigationBarContrastEnforced: false is required on Android 10+
-  // to prevent the OS from drawing a light scrim over gesture navigation.
+  
+  // Set system UI overlay style immediately
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       systemNavigationBarColor: AppColors.surfaceDeep,
@@ -23,21 +21,29 @@ Future<void> main() async {
       statusBarIconBrightness: Brightness.light,
     ),
   );
-
-  await JustAudioBackground.init(
-    androidNotificationChannelId: 'com.mume.audio',
-    androidNotificationChannelName: 'Mume playback',
-    androidNotificationOngoing: false,
-  );
+  
+  // Initialize preferences first (fast)
   await Prefs.init();
+  
+  // Initialize audio background in parallel (don't block startup)
+  // We'll handle errors gracefully if it fails
+  JustAudioBackground.init(
+    androidNotificationChannelId: 'com.mume.audio',
+    androidNotificationChannelName: 'Sonora playback',
+    androidNotificationOngoing: false,
+  ).catchError((e) {
+    // Log error but don't block startup
+    debugPrint('Warning: Audio background init failed: $e');
+  });
+  
   runApp(const ProviderScope(child: MainApp()));
 }
 
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
+  
   @override
   Widget build(BuildContext context) {
-    // AnnotatedRegion keeps the style applied on every route
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         systemNavigationBarColor: AppColors.surfaceDeep,
@@ -47,7 +53,7 @@ class MainApp extends StatelessWidget {
         statusBarIconBrightness: Brightness.light,
       ),
       child: MaterialApp.router(
-        title: 'Mume',
+        title: 'Sonora',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.dark,
         routerConfig: router,
