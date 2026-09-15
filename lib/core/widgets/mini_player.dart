@@ -27,8 +27,10 @@ class MiniPlayerBar extends ConsumerWidget {
           key: const Key('mini_player'),
           direction: DismissDirection.horizontal,
           onDismissed: (direction) {
-            // Optionally clear the queue or pause
-            // pc.player.stop(); // Uncomment if you want to stop playback
+            // ✅ FIX: Stop playback and clear the queue to hide the mini player
+            final pc = ref.read(playerProvider);
+            pc.player.stop();
+            pc.queue.clear();
           },
           background: Container(
             color: Colors.transparent,

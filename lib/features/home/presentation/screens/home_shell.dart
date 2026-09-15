@@ -314,18 +314,18 @@ class _IdentifySheetState extends ConsumerState<_IdentifySheet>
                   },
                 ),
               ),
-              if (isListening) ...[
-                const SizedBox(height: AppSpacing.lg),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceDeep,
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
-                    border: Border.all(color: AppColors.divider),
-                  ),
-                ),
-              ],
+              // if (isListening) ...[
+              //   const SizedBox(height: AppSpacing.lg),
+              //   Container(
+              //     padding:
+              //         const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              //     decoration: BoxDecoration(
+              //       color: AppColors.surfaceDeep,
+              //       borderRadius: BorderRadius.circular(AppRadius.pill),
+              //       border: Border.all(color: AppColors.divider),
+              //     ),
+              //   ),
+              // ],
               const SizedBox(height: AppSpacing.xl),
               Text(
                 isListening ? 'Listening...' : 'Tap to Search for a Song',
