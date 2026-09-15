@@ -14,14 +14,19 @@ class AppTheme {
     splashFactory: NoSplash.splashFactory,
     highlightColor: Colors.transparent,
     dividerColor: AppColors.divider,
+
     textTheme: TextTheme(
       titleLarge: AppTextStyles.title,
       bodyMedium: AppTextStyles.body,
     ),
     // ✅ ADD THIS: Global scrollbar styling
     scrollbarTheme: ScrollbarThemeData(
-      thumbColor: WidgetStateProperty.all(AppColors.primary.withValues(alpha: 0.85)),
-      trackColor: WidgetStateProperty.all(AppColors.surface.withValues(alpha: 0.3)),
+      thumbColor: WidgetStateProperty.all(
+        AppColors.primary.withValues(alpha: 0.85),
+      ),
+      trackColor: WidgetStateProperty.all(
+        AppColors.surface.withValues(alpha: 0.3),
+      ),
       thickness: WidgetStateProperty.all(5),
       radius: const Radius.circular(AppRadius.pill),
       interactive: true, // Allows dragging the scrollbar directly

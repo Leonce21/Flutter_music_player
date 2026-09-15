@@ -34,10 +34,22 @@ class SettingsScreen extends ConsumerWidget {
             title: 'Rescan Media Library',
             subtitle: '${lib?.songs.length ?? 0} songs indexed',
             onTap: () async {
-              final repo = ref.read(libraryRepoProvider);
-              await repo.rescan();
-              await ref.read(libraryProvider.notifier).refresh();
-              if (context.mounted) showSnack(context, 'Library refreshed.');
+              try {
+                final repo = ref.read(libraryRepoProvider);
+                await repo.rescan();
+                await ref.read(libraryProvider.notifier).refresh();
+                if (context.mounted) {
+                  showSnack(context, 'Library refreshed.');
+                }
+              } catch (e) {
+                // ✅ Prevents app crash and informs the user gracefully
+                if (context.mounted) {
+                  showSnack(
+                    context,
+                    'Rescan failed. Please restart the app if songs are missing.',
+                  );
+                }
+              }
             },
           ),
 
@@ -106,7 +118,9 @@ class SettingsScreen extends ConsumerWidget {
           Center(
             child: Text(
               'Made with ❤️ by FOTSO Leonce',
-              style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary),
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.textTertiary,
+              ),
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
@@ -138,7 +152,9 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             Text(
               'An offline-first, beautiful local music player designed for audiophiles. Enjoy your music with zero distractions.',
-              style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.body.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
@@ -229,7 +245,7 @@ class _SettingsTile extends StatelessWidget {
                 child: Icon(icon, size: 18, color: iconColor),
               ),
               const SizedBox(width: AppSpacing.lg),
-              
+
               // Text Content
               Expanded(
                 child: Column(
@@ -238,20 +254,19 @@ class _SettingsTile extends StatelessWidget {
                     Text(
                       title,
                       style: AppTextStyles.subtitle.copyWith(
-                        color: isDestructive ? AppColors.error : AppColors.textPrimary,
+                        color: isDestructive
+                            ? AppColors.error
+                            : AppColors.textPrimary,
                       ),
                     ),
                     if (subtitle != null) ...[
                       const SizedBox(height: 2),
-                      Text(
-                        subtitle!,
-                        style: AppTextStyles.caption,
-                      ),
+                      Text(subtitle!, style: AppTextStyles.caption),
                     ],
                   ],
                 ),
               ),
-              
+
               // Trailing Chevron
               if (onTap != null)
                 Icon(

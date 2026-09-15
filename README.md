@@ -12,14 +12,15 @@ Sonora is a beautiful, offline-first local music player built with Flutter. Desi
 
 ## ✨ Features
 
--  Offline Playback: Seamlessly plays local audio files directly from your device storage.
-- 🎨 Beautiful Dark UI: Sleek, modern interface with smooth animations and custom page transitions.
-- 📂 Smart Library: Organize and browse your music by Songs, Artists, Albums, and Folders.
-- ❤️ Favorites & Playlists: Create custom playlists and easily save your favorite tracks.
-- 🔍 Quick Search: Find your music instantly with a fast search engine and history tracking.
-- 📝 Synced Lyrics: Automatically loads and displays synchronized `.lrc` lyrics files.
-- 🌙 Smooth Onboarding: Welcoming onboarding flow for new users with seamless permission handling.
-- ⚙️ Data Control: Rescan media library, clear cache, and manage your data privacy easily.
+- 🎧 **Offline Playback**: Seamlessly plays local audio files directly from your device storage.
+- 🎨 **Beautiful Dark UI**: Sleek, modern interface with smooth animations and custom page transitions.
+- 📂 **Smart Library**: Organize and browse your music by Songs, Artists, Albums, and Folders.
+- ❤️ **Favorites & Playlists**: Create custom playlists and easily save your favorite tracks.
+- 🔍 **Quick Search**: Find your music instantly with a fast search engine and history tracking.
+- 🎤 **Music Recognition**: Instantly identify songs playing around you with a built-in Shazam-like audio recognition feature powered by [Audd.io](https://api.audd.io/).
+- 📝 **Synced Lyrics**: Automatically loads and displays synchronized `.lrc` lyrics files.
+- 🌙 **Smooth Onboarding**: Welcoming onboarding flow for new users with seamless permission handling.
+- ⚙️ **Data Control**: Rescan media library, clear cache, and manage your data privacy easily.
 
 
 

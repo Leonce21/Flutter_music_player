@@ -88,11 +88,20 @@ class LibraryRepository {
     return _q.queryAudiosFrom(AudiosFromType.ARTIST_ID, id);
   });
 
-  Future<List<SongModel>> fromFolder(String path) => _guard(() async {
+   Future<List<SongModel>> fromFolder(String path) => _guard(() async {
     if (!await ensurePermission()) return [];
     final all = await _q.querySongs();
     return all.where((s) => s.data.startsWith(path)).toList();
   });
 
-  Future<void> rescan() => _guard(() => _q.scanMedia('')).then((_) {});
+  // ✅ FIX: Removed _q.scanMedia('') entirely. 
+  // Passing an empty string to scanMedia causes an uncatchable native crash 
+  // ("Reply already submitted") on many Android ROMs (e.g., MIUI). 
+  // The refresh() call in the UI layer is sufficient to re-query the MediaStore.
+  Future<void> rescan() async {
+    // Intentionally left empty to prevent native plugin crashes.
+    // The UI layer will call refresh() immediately after this, which 
+    // re-queries the library and reflects any OS-level media updates.
+    await Future.delayed(Duration.zero); 
+  }
 }

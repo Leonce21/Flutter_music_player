@@ -52,11 +52,16 @@ class MainApp extends StatelessWidget {
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
       ),
-      child: MaterialApp.router(
-        title: 'Sonora',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.dark,
-        routerConfig: router,
+      child: ScrollConfiguration(
+        behavior: const MaterialScrollBehavior().copyWith(
+          physics: const BouncingScrollPhysics(),
+        ),
+        child: MaterialApp.router(
+          title: 'Sonora',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.dark,
+          routerConfig: router,
+        ),
       ),
     );
   }

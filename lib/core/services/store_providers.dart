@@ -46,56 +46,71 @@ class _IntListNotifier extends Notifier<List<int>> {
   void clear() { state = []; _write(state); }
 }
 
-final favoritesProvider =
-    NotifierProvider<_IntListNotifier, List<int>>(() => _IntListNotifier('favs'));
-final recentsProvider =
-    NotifierProvider<_IntListNotifier, List<int>>(() => _IntListNotifier('recents'));
-final blacklistProvider =
-    NotifierProvider<_IntListNotifier, List<int>>(() => _IntListNotifier('blacklist'));
+final favoritesProvider = NotifierProvider<_IntListNotifier, List<int>>(() => _IntListNotifier('favs'));
+final recentsProvider = NotifierProvider<_IntListNotifier, List<int>>(() => _IntListNotifier('recents'));
+final blacklistProvider = NotifierProvider<_IntListNotifier, List<int>>(() => _IntListNotifier('blacklist'));
 
 class PlaylistsNotifier extends Notifier<Map<String, List<int>>> {
   @override
   Map<String, List<int>> build() => Prefs.playlistsRaw.map(
       (k, v) => MapEntry(k.toString(), (v as List).cast<int>()));
-
-  void _save() => Prefs.playlistsRaw =
-      state.map((k, v) => MapEntry(k, v));
-
-  void create(String name) { state = {...state, name: []}; _save(); }
-  void delete(String name) { state = {...state}..remove(name); _save(); }
-
+  
+  void _save() => Prefs.playlistsRaw = state.map((k, v) => MapEntry(k, v));
+  
+  void create(String name) { 
+    if (state.containsKey(name)) return;
+    state = {...state, name: []}; 
+    _save(); 
+  }
+  
+  void delete(String name) { 
+    final newState = {...state}..remove(name); 
+    state = newState; 
+    _save(); 
+  }
+  
   void addTo(String name, int songId) {
-    final l = {...state[name] ?? []}..add(songId);
-    state = {...state, name: l.toList()}; _save();
+    if (!state.containsKey(name)) return;
+    final current = state[name] ?? [];
+    if (current.contains(songId)) return;
+    final newList = [...current, songId];
+    state = {...state, name: newList}; 
+    _save();
+  }
+  
+  void removeFrom(String name, int songId) {
+    if (!state.containsKey(name)) return;
+    final newList = (state[name] ?? []).where((id) => id != songId).toList();
+    state = {...state, name: newList}; 
+    _save();
   }
 
-  void removeAt(String name, int songId) {
-    state = {...state, name: (state[name] ?? [])..remove(songId)}; _save();
+  void rename(String oldName, String newName) {
+    if (oldName == newName || state.containsKey(newName)) return;
+    final songs = state[oldName] ?? [];
+    final newState = {...state}..remove(oldName);
+    newState[newName] = songs;
+    state = newState;
+    _save();
   }
 }
 
-final playlistsProvider =
-    NotifierProvider<PlaylistsNotifier, Map<String, List<int>>>(PlaylistsNotifier.new);
+final playlistsProvider = NotifierProvider<PlaylistsNotifier, Map<String, List<int>>>(PlaylistsNotifier.new);
 
 class HistoryNotifier extends Notifier<List<String>> {
   @override
   List<String> build() => Prefs.history;
-  
   void log(String q) {
     if (q.trim().isEmpty) return;
     state = [q, ...state.where((e) => e != q)].take(10).toList();
     Prefs.history = state;
   }
-  
-  void remove(String q) { 
-    state = [...state..remove(q)]; 
-    Prefs.history = state; 
+  void remove(String q) {
+    state = [...state..remove(q)];
+    Prefs.history = state;
   }
-  
   void clear() { state = []; Prefs.history = state; }
 }
 
 final historyProvider = NotifierProvider<HistoryNotifier, List<String>>(HistoryNotifier.new);
-
-final sortPrefProvider =
-    StateProvider.family<String, String>((ref, tab) => Prefs.sortFor(tab));
+final sortPrefProvider = StateProvider.family<String, String>((ref, tab) => Prefs.sortFor(tab));

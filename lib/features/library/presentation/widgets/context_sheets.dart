@@ -23,54 +23,29 @@ const _ringtoneChannel = MethodChannel('com.mume/ringtone');
 void showSongContextSheet(BuildContext context, SongModel song) {
   final ref = ProviderScope.containerOf(context);
   final pc = ref.read(playerProvider);
-
   showContextSheet(
     context,
     header: SongContextHeader(song: song),
     actions: [
-      // 1. PLAY NEXT
       ContextAction(
         icon: AppIcons.play,
         label: 'Play',
         onTap: () => pc.playNextInQueue(song),
       ),
-
-      // ── COMMENTED OUT: Add to Playing Queue ──
-      // ContextAction(
-      //   icon: AppIcons.queue,
-      //   label: 'Add to Playing Queue',
-      //   onTap: () => pc.enqueue(song),
-      // ),
-
-      // ── COMMENTED OUT: Add to Playlist ──
-      // ContextAction(
-      //   icon: AppIcons.addPlaylist,
-      //   label: 'Add to Playlist',
-      //   onTap: () => showPlaylistPicker(context, song),
-      // ),
-
-      // ── COMMENTED OUT: Go to Album ──
-      // ContextAction(
-      //   icon: AppIcons.album,
-      //   label: 'Go to Album',
-      //   onTap: () => context.push('/album/${song.albumId ?? -1}'),
-      // ),
-
-      // ── COMMENTED OUT: Go to Artist ──
-      // ContextAction(
-      //   icon: AppIcons.artist,
-      //   label: 'Go to Artist',
-      //   onTap: () => context.push('/artist/${song.artistId ?? -1}'),
-      // ),
-
-      // 2. DETAILS
+      // ✅ UNCOMMENTED: Add to Playlist is now fully functional
+      ContextAction(
+        icon: AppIcons.addPlaylist,
+        label: 'Add to Playlist',
+        onTap: () {
+          print('DEBUG: Add to Playlist tapped');
+          showPlaylistPicker(context, song);
+        },
+      ),
       ContextAction(
         icon: AppIcons.info,
         label: 'Details',
         onTap: () => showSongDetailsDialog(context, song),
       ),
-
-      // 3. SET AS RINGTONE (Android only)
       if (Platform.isAndroid)
         ContextAction(
           icon: AppIcons.ringtone,
@@ -78,42 +53,24 @@ void showSongContextSheet(BuildContext context, SongModel song) {
           onTap: () async {
             try {
               final ok = await _ringtoneChannel.invokeMethod('setRingtone', {
-                'uri': song.uri,   // content://media/… (preferred)
-                'path': song.data, // fallback absolute path
+                'uri': song.uri,
+                'path': song.data,
               });
               if (ok != true && context.mounted) {
                 showSnack(context, 'No app found to set ringtone.');
               }
             } catch (e) {
-              // Catches BOTH PlatformException AND MissingPluginException
               if (context.mounted) {
                 showSnack(context, 'Could not set ringtone: $e');
               }
             }
           },
         ),
-
-      // ── COMMENTED OUT: Add to Blacklist ──
-      // ContextAction(
-      //   icon: AppIcons.ban,
-      //   label: 'Add to Blacklist',
-      //   onTap: () async {
-      //     if (await showConfirm(context, 'Blacklist',
-      //         'Hide "${song.title}" everywhere in Mume?')) {
-      //       ref.read(blacklistProvider.notifier).add(song.id);
-      //       await ref.read(libraryProvider.notifier).refresh();
-      //     }
-      //   },
-      // ),
-
-      // 4. SHARE
       ContextAction(
         icon: AppIcons.share,
         label: 'Share',
         onTap: () => Share.shareXFiles([XFile(song.data)]),
       ),
-
-      // 5. DELETE FROM DEVICE
       ContextAction(
         icon: AppIcons.trash,
         label: 'Delete from Device',
@@ -128,15 +85,12 @@ void showSongContextSheet(BuildContext context, SongModel song) {
             bool deleted = false;
             String? error;
             try {
-              // Use the content:// URI (Android 10+ compatible)
-              final uri = song.uri ??
-                  'content://media/external/audio/media/${song.id}';
+              final uri = song.uri ?? 'content://media/external/audio/media/${song.id}';
               if (uri.startsWith('content://')) {
                 deleted = await _ringtoneChannel.invokeMethod('deleteAudioFile', {
                   'uri': uri,
                 }) ?? false;
               }
-              // Fallback for older devices / private app dirs
               if (!deleted) {
                 final f = File(song.data);
                 if (f.existsSync()) {
@@ -147,17 +101,12 @@ void showSongContextSheet(BuildContext context, SongModel song) {
             } catch (e) {
               error = e.toString();
             }
-
             if (deleted) {
               await ref.read(libraryProvider.notifier).refresh();
               if (context.mounted) showSnack(context, 'Deleted.');
             } else {
               if (context.mounted) {
-                showSnack(
-                  context,
-                  'Could not delete the file.'
-                  '${error != null ? '\n$error' : ''}',
-                );
+                showSnack(context, 'Could not delete the file.${error != null ? '\n$error' : ''}');
               }
             }
           }
@@ -167,9 +116,85 @@ void showSongContextSheet(BuildContext context, SongModel song) {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  HEADER + OTHER SHEETS (unchanged)                                 */
-/* ------------------------------------------------------------------ */
+void showPlaylistPicker(BuildContext context, SongModel song) {
+  print('DEBUG: showPlaylistPicker called');
+  final ref = ProviderScope.containerOf(context);
+  final lists = ref.read(playlistsProvider);
+  print('DEBUG: Playlists found: ${lists.keys.toList()}');
+  
+  try {
+    showContextSheet(
+      context,
+      header: lists.isEmpty
+          ? Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Text('No playlists yet. Create one first!', style: AppTextStyles.body),
+            )
+          : null,
+      actions: [
+        if (lists.isNotEmpty)
+          for (final name in lists.keys)
+            ContextAction(
+              icon: AppIcons.playlists,
+              label: name,
+              onTap: () {
+                print('DEBUG: Adding song ${song.title} to playlist: $name');
+                ref.read(playlistsProvider.notifier).addTo(name, song.id);
+                if (context.mounted) {
+                  showSnack(context, 'Added to $name');
+                }
+              },
+            ),
+        ContextAction(
+          icon: AppIcons.add,
+          label: 'New playlist',
+          onTap: () async {
+            print('DEBUG: Creating new playlist');
+            final name = await showTextDialog(context, 'Create playlist', hint: 'Playlist name');
+            if (name != null && name.trim().isNotEmpty) {
+              print('DEBUG: New playlist name: $name');
+              ref.read(playlistsProvider.notifier).create(name.trim());
+              ref.read(playlistsProvider.notifier).addTo(name.trim(), song.id);
+              if (context.mounted) {
+                showSnack(context, 'Created and added to "$name"');
+              }
+            }
+          },
+        ),
+      ],
+    );
+  } catch (e) {
+    print('ERROR in showPlaylistPicker: $e');
+    if (context.mounted) {
+      showSnack(context, 'Error: $e');
+    }
+  }
+}
+
+void showPlaylistSongContextSheet(BuildContext context, String playlistName, SongModel song, WidgetRef ref) {
+  showContextSheet(
+    context,
+    header: SongContextHeader(song: song),
+    actions: [
+      ContextAction(
+        icon: AppIcons.play,
+        label: 'Play',
+        onTap: () {
+          ref.read(playerProvider).playQueue([song], 0);
+        },
+      ),
+      ContextAction(
+        icon: AppIcons.trash,
+        label: 'Remove from Playlist',
+        destructive: true,
+        onTap: () {
+          ref.read(playlistsProvider.notifier).removeFrom(playlistName, song.id);
+          showSnack(context, 'Removed from playlist');
+        },
+      ),
+    ],
+  );
+}
 
 class SongContextHeader extends ConsumerWidget {
   const SongContextHeader({super.key, required this.song});
@@ -233,7 +258,6 @@ void showArtistContextSheet(BuildContext context, ArtistModel artist) {
   final pc = ref.read(playerProvider);
   final repo = ref.read(libraryRepoProvider);
   Future<List<SongModel>> songs() => repo.fromArtist(artist.id);
-
   showContextSheet(
     context,
     actions: [
@@ -277,40 +301,6 @@ void showArtistContextSheet(BuildContext context, ArtistModel artist) {
   );
 }
 
-void showPlaylistPicker(BuildContext context, SongModel song) {
-  final ref = ProviderScope.containerOf(context);
-  final lists = ref.read(playlistsProvider);
-  showContextSheet(
-    context,
-    actions: [
-      for (final name in lists.keys)
-        ContextAction(
-          icon: AppIcons.playlists,
-          label: name,
-          onTap: () {
-            ref.read(playlistsProvider.notifier).addTo(name, song.id);
-            showSnack(context, 'Added to $name');
-          },
-        ),
-      ContextAction(
-        icon: AppIcons.add,
-        label: 'New playlist',
-        onTap: () async {
-          final name = await showTextDialog(
-            context,
-            'Create playlist',
-            hint: 'Playlist name',
-          );
-          if (name != null) {
-            ref.read(playlistsProvider.notifier).create(name);
-            ref.read(playlistsProvider.notifier).addTo(name, song.id);
-          }
-        },
-      ),
-    ],
-  );
-}
-
 void showSongDetailsDialog(BuildContext context, SongModel s) {
   final rows = [
     ['Title', s.title],
@@ -342,8 +332,7 @@ void showSongDetailsDialog(BuildContext context, SongModel s) {
                   Expanded(
                     child: Text(
                       r[1],
-                      style: AppTextStyles.body
-                          .copyWith(color: AppColors.textPrimary),
+                      style: AppTextStyles.body.copyWith(color: AppColors.textPrimary),
                     ),
                   ),
                 ],

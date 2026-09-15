@@ -1,7 +1,9 @@
+import 'dart:async'; // ✅ ADD THIS for StreamSubscription
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:just_audio/just_audio.dart'; // Added for LoopMode
+import 'package:just_audio/just_audio.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:volume_controller/volume_controller.dart'; // ✅ v3.x import
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_icons.dart';
 import '../../../../core/theme/app_radius.dart';
@@ -16,6 +18,7 @@ import '../../application/player_controller.dart';
 
 class NowPlayingScreen extends ConsumerStatefulWidget {
   const NowPlayingScreen({super.key});
+
   @override
   ConsumerState<NowPlayingScreen> createState() => _NowPlayingScreenState();
 }
@@ -23,22 +26,49 @@ class NowPlayingScreen extends ConsumerStatefulWidget {
 class _NowPlayingScreenState extends ConsumerState<NowPlayingScreen> {
   bool _lyrics = false;
   final _lyricCtl = ScrollController();
+  double _volume = 1.0;
+  
+  // ✅ v3.x API: Store the subscription returned by addListener
+  StreamSubscription<double>? _volumeSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _initVolumeController();
+  }
+
+  void _initVolumeController() {
+    // ✅ v3.x API: Use .instance singleton
+    VolumeController.instance.showSystemUI = false;
+    
+    // ✅ v3.x API: addListener returns a StreamSubscription and supports fetchInitialVolume
+    _volumeSubscription = VolumeController.instance.addListener((volume) {
+      if (mounted) {
+        setState(() => _volume = volume);
+      }
+    }, fetchInitialVolume: true);
+  }
+
+  @override
+  void dispose() {
+    // ✅ v3.x API: Cancel the subscription to prevent memory leaks
+    _volumeSubscription?.cancel();
+    _lyricCtl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final pc = ref.watch(playerProvider);
-
     return StreamBuilder<int?>(
       stream: pc.player.currentIndexStream,
       builder: (context, _) {
         final song = pc.currentSong;
-
         if (song == null) {
           return const MumeScaffoldPlain(
             child: EmptyState(message: 'Nothing playing.'),
           );
         }
-
         return Scaffold(
           body: SafeArea(
             child: Column(
@@ -55,7 +85,12 @@ class _NowPlayingScreenState extends ConsumerState<NowPlayingScreen> {
                         onTap: () => Navigator.pop(context),
                       ),
                       const Spacer(),
-                      IconBtn(icon: AppIcons.moreCircle, onTap: () {}),
+                      IconBtn(
+                        icon: Icons.volume_up,
+                        size: 22,
+                        color: AppColors.textPrimary,
+                        onTap: () => _showVolumeSheet(context, pc),
+                      ),
                     ],
                   ),
                 ),
@@ -100,9 +135,21 @@ class _NowPlayingScreenState extends ConsumerState<NowPlayingScreen> {
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.screenH,
                     ),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text('Lyrics', style: AppTextStyles.title),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text('Lyrics', style: AppTextStyles.title),
+                          ),
+                        ),
+                        IconBtn(
+                          icon: Icons.keyboard_arrow_down,
+                          size: 24,
+                          color: AppColors.textSecondary,
+                          onTap: () => setState(() => _lyrics = false),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
@@ -111,38 +158,115 @@ class _NowPlayingScreenState extends ConsumerState<NowPlayingScreen> {
                   ),
                 ] else
                   const Spacer(),
-                if (!_lyrics)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                    child: InkWell(
-                      onTap: () => setState(() => _lyrics = true),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            AppIcons.chevronUp,
-                            size: 20,
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                  child: InkWell(
+                    onTap: () => setState(() => _lyrics = !_lyrics),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _lyrics
+                              ? Icons.keyboard_arrow_down
+                              : AppIcons.chevronUp,
+                          size: 20,
+                          color: AppColors.textPrimary,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          _lyrics ? 'Close' : 'Lyrics',
+                          style: AppTextStyles.caption.copyWith(
                             color: AppColors.textPrimary,
                           ),
-                          Text(
-                            'Lyrics',
-                            style: AppTextStyles.caption.copyWith(
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-              ], // Closes Column children
-            ), // Closes Column
-          ), // Closes SafeArea
-        ); // Closes Scaffold
-      }, // ✅ ADDED: Closes the builder callback function
-    ); // ✅ ADDED: Closes the StreamBuilder widget
-  } // ✅ Closes the build method
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showVolumeSheet(BuildContext context, PlayerController pc) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.sheet),
+        ),
+      ),
+      builder: (c) => StatefulBuilder(
+        builder: (context, setModalState) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.divider,
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.volume_down,
+                      color: AppColors.textSecondary,
+                      size: 22,
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Slider(
+                        value: _volume,
+                        min: 0.0,
+                        max: 1.0,
+                        activeColor: AppColors.primary,
+                        inactiveColor: AppColors.divider,
+                        onChanged: (v) {
+                          setModalState(() => _volume = v);
+                          setState(() => _volume = v);
+                          // ✅ v3.x API: Use .instance to set volume
+                          VolumeController.instance.setVolume(v);
+                          // Keep player internal volume at max to prevent double-attenuation
+                          pc.player.setVolume(1.0);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    const Icon(
+                      Icons.volume_up,
+                      color: AppColors.textSecondary,
+                      size: 22,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  '${(_volume * 100).round()}%',
+                  style: AppTextStyles.subtitle.copyWith(
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
+// ... (Keep MumeScaffoldPlain, _Progress, _Controls, _SecondaryRow, and _LyricsPanel exactly as they were)
 class MumeScaffoldPlain extends StatelessWidget {
   const MumeScaffoldPlain({super.key, required this.child});
   final Widget child;
@@ -455,7 +579,6 @@ class _LyricsPanelState extends ConsumerState<_LyricsPanel> {
             controller: widget.ctl,
             itemCount: lines.length,
             itemBuilder: (c, i) => AnimatedDefaultTextStyle(
-              // Fixed typo
               duration: AppTheme.dur(200),
               style: i <= _active
                   ? AppTextStyles.subtitle.copyWith(color: AppColors.primary)

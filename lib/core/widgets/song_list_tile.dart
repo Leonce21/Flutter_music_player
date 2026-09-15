@@ -13,9 +13,10 @@ import 'play_pause_icon.dart';
 import '../utils/formatters.dart';
 
 class SongListTile extends ConsumerWidget {
-  const SongListTile({super.key, required this.song, required this.queue});
+  const SongListTile({super.key, required this.song, required this.queue, this.onMoreTap});
   final SongModel song;
   final List<SongModel> queue;
+  final VoidCallback? onMoreTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,28 +35,29 @@ class SongListTile extends ConsumerWidget {
                   : pc.playQueue(queue, queue.indexOf(song)),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.screenH,
-                    vertical: AppSpacing.sm),
+                  horizontal: AppSpacing.screenH,
+                  vertical: AppSpacing.sm,
+                ),
                 child: Row(children: [
                   ArtworkLoader(id: song.albumId ?? song.id,
                       type: ArtworkType.ALBUM, seed: song.title),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(song.title, maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.subtitle.copyWith(
-                                color: isCurrent
-                                    ? AppColors.primary
-                                    : AppColors.textPrimary)),
-                        const SizedBox(height: 2),
-                        Text(
-                            '${song.artist ?? 'Unknown'}  |  '
-                            '${fmtMs(song.duration)}',
-                            maxLines: 1, overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.caption),
-                      ])),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(song.title, maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.subtitle.copyWith(
+                              color: isCurrent
+                                  ? AppColors.primary
+                                  : AppColors.textPrimary)),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${song.artist ?? 'Unknown'}  |  '
+                        '${fmtMs(song.duration)}',
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.caption),
+                    ])),
                   const SizedBox(width: AppSpacing.sm),
                   PlayPauseIcon(playing: playing, onTap: () => isCurrent
                       ? pc.toggle() : pc.playQueue(queue, queue.indexOf(song)),
@@ -63,7 +65,7 @@ class SongListTile extends ConsumerWidget {
                   const SizedBox(width: AppSpacing.sm),
                   IconBtn(icon: AppIcons.more, size: 18,
                       color: AppColors.textSecondary,
-                      onTap: () => showSongContextSheet(context, song)),
+                      onTap: onMoreTap ?? () => showSongContextSheet(context, song)),
                 ]),
               ),
             );

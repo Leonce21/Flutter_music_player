@@ -1,3 +1,4 @@
+// lib/core/widgets/context_sheet.dart
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_radius.dart';
@@ -5,20 +6,26 @@ import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 
 class ContextAction {
-  const ContextAction({required this.icon, required this.label,
-      required this.onTap, this.destructive = false});
-  final IconData icon; final String label;
-  final VoidCallback onTap; final bool destructive;
+  const ContextAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.destructive = false,
+  });
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool destructive;
 }
 
-/// Generic bottom sheet: optional header card + icon/label action rows.
 class ItemContextSheet extends StatelessWidget {
   const ItemContextSheet({super.key, this.header, required this.actions});
-  final Widget? header; final List<ContextAction> actions;
+  final Widget? header;
+  final List<ContextAction> actions;
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(               // ← respects top status-bar & bottom gesture nav
+    return SafeArea(
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -46,8 +53,11 @@ class ItemContextSheet extends StatelessWidget {
               itemBuilder: (c, i) {
                 final a = actions[i];
                 return InkWell(
-                  onTap: () {
+                  onTap: () async {
+                    // ✅ Close the modal FIRST, then execute the action
                     Navigator.pop(c);
+                    // Wait for the modal to close before showing the snackbar
+                    await Future.delayed(const Duration(milliseconds: 100));
                     a.onTap();
                   },
                   child: Padding(
@@ -55,24 +65,26 @@ class ItemContextSheet extends StatelessWidget {
                       horizontal: AppSpacing.screenH,
                       vertical: AppSpacing.md + 2,
                     ),
-                    child: Row(children: [
-                      Icon(
-                        a.icon,
-                        size: 20,
-                        color: a.destructive
-                            ? AppColors.error
-                            : AppColors.textPrimary,
-                      ),
-                      const SizedBox(width: AppSpacing.lg),
-                      Text(
-                        a.label,
-                        style: AppTextStyles.subtitle.copyWith(
+                    child: Row(
+                      children: [
+                        Icon(
+                          a.icon,
+                          size: 20,
                           color: a.destructive
                               ? AppColors.error
                               : AppColors.textPrimary,
                         ),
-                      ),
-                    ]),
+                        const SizedBox(width: AppSpacing.lg),
+                        Text(
+                          a.label,
+                          style: AppTextStyles.subtitle.copyWith(
+                            color: a.destructive
+                                ? AppColors.error
+                                : AppColors.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
@@ -84,18 +96,35 @@ class ItemContextSheet extends StatelessWidget {
   }
 }
 
-Future<T?> showContextSheet<T>(BuildContext context,
-        {Widget? header, required List<ContextAction> actions}) =>
-    showModalBottomSheet<T>(
-      context: context,
-      isScrollControlled: true,
-      useRootNavigator: true,   // ← pushes modal onto root navigator
-      useSafeArea: false,       // ← we handle safe-area manually inside the sheet
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppRadius.sheet),
+Future<T?> showContextSheet<T>(
+  BuildContext context, {
+  Widget? header,
+  required List<ContextAction> actions,
+}) {
+  print('DEBUG: showContextSheet called with ${actions.length} actions');
+  print('DEBUG: context.mounted = ${context.mounted}');
+  return showModalBottomSheet<T>(
+        context: context,
+        isScrollControlled: true,
+        useRootNavigator: true,
+        useSafeArea: false,
+        backgroundColor: AppColors.surface,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppRadius.sheet),
+          ),
         ),
-      ),
-      builder: (_) => ItemContextSheet(header: header, actions: actions),
-    );
+        builder: (_) {
+          print('DEBUG: showModalBottomSheet builder called');
+          return ItemContextSheet(header: header, actions: actions);
+        },
+      )
+      .then((result) {
+        print('DEBUG: showModalBottomSheet closed with result: $result');
+        return result;
+      })
+      .catchError((error) {
+        print('ERROR in showModalBottomSheet: $error');
+        return null;
+      });
+}

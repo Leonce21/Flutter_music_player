@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/library_tab_bar.dart';
 import '../../../../core/widgets/mume_scaffold.dart';
-import '../widgets/suggested_tab.dart';
 import '../../../library/presentation/widgets/tabs.dart';
 
 class HomeScreen extends StatelessWidget {
